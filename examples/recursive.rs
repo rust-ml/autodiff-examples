@@ -1,5 +1,12 @@
 #![feature(abi_unadjusted)]
 
+// TODO: As seen by the bloated code generated for the iterative version,
+// we definetly have to disable unroll, slpvec, loop-vec before AD.
+// We also should check if we have other opts that Julia, C++, Fortran etc. don't have
+// and which could make our input code more "complex".
+// We then however have to start doing whole-module opt after AD to re-include them,
+// instead of just using enzyme to optimize the generated function.
+
 fn power_recursive(a: f64, n: i32) -> f64 {
     if n == 0 {
         return 1.0;
@@ -20,10 +27,10 @@ extern "unadjusted" {
     fn d_power_recursive(a: f64, act_a: f64, n: i32) -> f64;
 }
 
-// #[autodiff(power_iterative, mode = "reverse", Active, Active, Const)]
-// extern "unadjusted" {
-//     fn d_power_iterative();
-// }
+#[autodiff(power_iterative, mode = "reverse", Active, Active, Const)]
+extern "unadjusted" {
+    fn d_power_iterative(a: f64, n: i32, factor: f64) -> f64;
+}
 
 fn main() {
     // d/dx x^n = n * x^(n-1)
@@ -32,10 +39,13 @@ fn main() {
     let a = 1.337;
     assert!(power_recursive(a, n) == power_iterative(a, n));
     let dpr = unsafe { d_power_recursive(a, 1.0, n) };
+    let dpi = unsafe { d_power_iterative(a, n, 1.0) };
     let control = nf * a.powi(n - 1);
     dbg!(dpr);
+    dbg!(dpi);
     dbg!(control);
     assert!(dpr == control);
+    assert!(dpi == control);
 }
 
 // Again, for the curious. We can find n * x^(n-1) nicely in the LLVM-IR
