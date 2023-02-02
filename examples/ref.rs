@@ -1,12 +1,12 @@
-#![feature(abi_unadjusted)]
-
+#[autodiff()]
 fn sin(x: &f32) -> f32 {
     f32::sin(*x)
 }
 
-#[autodiff(sin, mode = "reverse", Active, Duplicated)]
-extern "unadjusted" {
-    fn cos_ref(x: &f32, df_dx: &mut f32, factor: f32);
+#[autodiff(mode = "reverse", Active, Duplicated)]
+fn cos_ref(x: &f32, df_dx: &mut f32, factor: f32) {
+    let _ = sin(x);
+    unreachable!()
 }
 
 fn main() {
@@ -15,7 +15,7 @@ fn main() {
     // Calling f32::cos directly will also result in calling llvm's cos function.
     let x = 3.14;
     let mut df_dx = 0.0;
-    unsafe { cos_ref(&x, &mut df_dx, 1.0) };
+    cos_ref(&x, &mut df_dx, 1.0);
     assert!(df_dx == f32::cos(x));
 }
 

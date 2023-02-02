@@ -1,5 +1,4 @@
-#![feature(abi_unadjusted)]
-
+#[autodiff()]
 fn rosenbrock(y: *const [f64; 2]) -> f64 {
     let x = unsafe { *y };
     let mut res = 0.0;
@@ -11,9 +10,10 @@ fn rosenbrock(y: *const [f64; 2]) -> f64 {
     res
 }
 
-#[autodiff(rosenbrock, mode = "reverse", Active, Duplicated)]
-extern "unadjusted" {
-    fn d_rosenbrock(y: &[f64; 2], df_dx: &mut [f64; 2], c: f64);
+#[autodiff(mode = "reverse", Active, Duplicated)]
+fn d_rosenbrock(y: &[f64; 2], df_dx: &mut [f64; 2], c: f64) {
+    let _ = rosenbrock(y);
+    unreachable!()
 }
 
 fn main() {

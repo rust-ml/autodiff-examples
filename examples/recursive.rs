@@ -1,5 +1,3 @@
-#![feature(abi_unadjusted)]
-
 // TODO: As seen by the bloated code generated for the iterative version,
 // we definetly have to disable unroll, slpvec, loop-vec before AD.
 // We also should check if we have other opts that Julia, C++, Fortran etc. don't have
@@ -7,6 +5,7 @@
 // We then however have to start doing whole-module opt after AD to re-include them,
 // instead of just using enzyme to optimize the generated function.
 
+#[autodiff()]
 fn power_recursive(a: f64, n: i32) -> f64 {
     if n == 0 {
         return 1.0;
@@ -14,22 +13,25 @@ fn power_recursive(a: f64, n: i32) -> f64 {
     return a * power_recursive(a, n - 1);
 }
 
+#[autodiff()]
 fn power_iterative(a: f64, n: i32) -> f64 {
     let mut res = 1.0;
-    for i in 0..n {
+    for _ in 0..n {
         res *= a;
     }
     res
 }
 
-#[autodiff(power_recursive, mode = "forward", DuplicatedNoNeed, Duplicated, Const)]
-extern "unadjusted" {
-    fn d_power_recursive(a: f64, act_a: f64, n: i32) -> f64;
+#[autodiff(mode = "forward", DuplicatedNoNeed, Duplicated, Const)]
+fn d_power_recursive(a: f64, act_a: f64, n: i32) -> f64 {
+    let _ = power_recursive(a, n);
+    unreachable!()
 }
 
-#[autodiff(power_iterative, mode = "reverse", Active, Active, Const)]
-extern "unadjusted" {
-    fn d_power_iterative(a: f64, n: i32, factor: f64) -> f64;
+#[autodiff(mode = "reverse", Active, Active, Const)]
+fn d_power_iterative(a: f64, n: i32, factor: f64) -> f64 {
+    let _ = power_recursive(a, n);
+    unreachable!()
 }
 
 fn main() {
@@ -38,8 +40,8 @@ fn main() {
     let nf = n as f64;
     let a = 1.337;
     assert!(power_recursive(a, n) == power_iterative(a, n));
-    let dpr = unsafe { d_power_recursive(a, 1.0, n) };
-    let dpi = unsafe { d_power_iterative(a, n, 1.0) };
+    let dpr = d_power_recursive(a, 1.0, n);
+    let dpi = d_power_iterative(a, n, 1.0);
     let control = nf * a.powi(n - 1);
     dbg!(dpr);
     dbg!(dpi);

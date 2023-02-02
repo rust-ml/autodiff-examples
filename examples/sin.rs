@@ -1,11 +1,11 @@
-#![feature(abi_unadjusted)]
-
+#[autodiff()]
 fn sin(x: f32) -> f32 {
     f32::sin(x)
 }
-#[autodiff(sin, mode = "reverse", Active, Active)]
-extern "unadjusted" {
-    fn cos(x: f32, factor: f32) -> f32;
+#[autodiff(mode = "reverse", Active, Active)]
+fn cos(x: f32, factor: f32) -> f32 {
+    let _ = sin(x);
+    unreachable!()
 }
 
 fn main() {
