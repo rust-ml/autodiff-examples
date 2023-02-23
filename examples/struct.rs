@@ -1,3 +1,6 @@
+#![feature(bench_black_box)]
+use autodiff::autodiff;
+
 use std::io;
 
 // Will be represented as {f32, i16, i16} when passed by reference
@@ -8,16 +11,10 @@ struct Foo {
     c2: i16,
 }
 
-#[autodiff()]
+#[autodiff(cos, Reverse, Active, Duplicated)]
 fn sin(x: &Foo) -> f32 {
-    assert!(x.c1 < x.c2);
+    //assert!(x.c1 < x.c2);
     f32::sin(x.a)
-}
-
-#[autodiff(sin, mode = "reverse", Active, Duplicated)]
-fn cos_struct(x: &Foo, df_dx: &mut Foo, factor: f32) {
-    let _ = sin(x);
-    unreachable!()
 }
 
 fn main() {
@@ -30,7 +27,7 @@ fn main() {
     let mut df_dfoo = Foo { c1: 4, a: 0.0, c2 };
 
     dbg!(df_dfoo.a);
-    dbg!(cos_struct(&foo, &mut df_dfoo, 1.0));
+    dbg!(cos(&foo, &mut df_dfoo, 1.0));
     dbg!(df_dfoo.a);
     dbg!(f32::cos(foo.a));
 }
