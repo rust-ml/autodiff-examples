@@ -3,19 +3,8 @@ use autodiff::autodiff;
 
 use std::ops::{Mul, Add};
 
-//#[autodiff(d_rosenbrock, Forward, DuplicatedNoNeed)]
-//fn rosenbrock(#[dup] x: &[f64; 2]) -> f64 {
-//    let mut res = 0.0;
-//    for i in 0..(x.len() - 1) {
-//        let a = x[i + 1] - x[i] * x[i];
-//        let b = x[i] - 1.0;
-//        res += 100.0 * a * a + b * b;
-//    }
-//    res
-//}
-
 #[autodiff(d_rosenbrock, Forward, DuplicatedNoNeed)]
-fn rosenbrock<T: Mul + Add>(#[dup] x: &[T; 2]) -> T {
+fn rosenbrock(#[dup] x: &[f64; 2]) -> f64 {
     (0..x.len() - 1)
         .map(|i| {
             let (a, b) = (x[i + 1] - x[i] * x[i], x[i] - 1.0);

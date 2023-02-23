@@ -1,3 +1,6 @@
+#![feature(bench_black_box)]
+use autodiff::autodiff;
+
 // TODO: As seen by the bloated code generated for the iterative version,
 // we definetly have to disable unroll, slpvec, loop-vec before AD.
 // We also should check if we have other opts that Julia, C++, Fortran etc. don't have
@@ -5,33 +8,21 @@
 // We then however have to start doing whole-module opt after AD to re-include them,
 // instead of just using enzyme to optimize the generated function.
 
-#[autodiff()]
-fn power_recursive(a: f64, n: i32) -> f64 {
+#[autodiff(d_power_recursive, Forward, DuplicatedNoNeed)]
+fn power_recursive(#[dup] a: f64, n: i32) -> f64 {
     if n == 0 {
         return 1.0;
     }
     return a * power_recursive(a, n - 1);
 }
 
-#[autodiff()]
-fn power_iterative(a: f64, n: i32) -> f64 {
+#[autodiff(d_power_iterative, Reverse, DuplicatedNoNeed)]
+fn power_iterative(#[active] a: f64, n: i32) -> f64 {
     let mut res = 1.0;
     for _ in 0..n {
         res *= a;
     }
     res
-}
-
-#[autodiff(mode = "forward", DuplicatedNoNeed, Duplicated, Const)]
-fn d_power_recursive(a: f64, act_a: f64, n: i32) -> f64 {
-    let _ = power_recursive(a, n);
-    unreachable!()
-}
-
-#[autodiff(mode = "reverse", Active, Active, Const)]
-fn d_power_iterative(a: f64, n: i32, factor: f64) -> f64 {
-    let _ = power_recursive(a, n);
-    unreachable!()
 }
 
 fn main() {

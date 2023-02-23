@@ -10,5 +10,6 @@ lto = "fat"
 [profile.dev]
 lto = "fat"
 
-
 [dependencies]
+autodiff = { path = "/home/lorenz/Downloads/rust/library/autodiff" }
+ndarray = "*"

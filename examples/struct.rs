@@ -13,7 +13,7 @@ struct Foo {
 
 #[autodiff(cos, Reverse, Active, Duplicated)]
 fn sin(x: &Foo) -> f32 {
-    //assert!(x.c1 < x.c2);
+    assert!(x.c1 < x.c2);
     f32::sin(x.a)
 }
 

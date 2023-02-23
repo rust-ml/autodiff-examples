@@ -1,11 +1,6 @@
 #![feature(bench_black_box)]
 use autodiff::autodiff;
 
-//#[autodiff(cos_return, Reverse, Active)]
-//fn sin_return(#[active] x: &f32) -> f32 {
-//    f32::sin(*x)
-//}
-
 #[autodiff(cos_inplace, Reverse, Const)]
 fn sin_inplace(#[dup] x: &f32, #[dup_noneed] y: &mut f32) {
     *y = x.sin();
@@ -21,7 +16,7 @@ fn main() {
     cos_inplace(&a, &mut da, &mut y, &1.0);
 
     dbg!(&a, &da);
-    assert!(da - f32::cos(3.14) == 0.0);
+    assert!(da - f32::cos(a) == 0.0);
 }
 
 // Just for curious readers, this is the (inner) function that Enzyme does generate:
