@@ -21,7 +21,8 @@ fn main() {
     cos_inplace(&a, &mut da, &mut y, &1.0);
 
     dbg!(&a, &da);
-    assert!(da - f32::cos(3.14) == 0.0);
+    dbg!(da - f32::cos(a));
+    assert!(da - f32::cos(a) == 0.0);
 }
 
 // Just for curious readers, this is the (inner) function that Enzyme does generate:

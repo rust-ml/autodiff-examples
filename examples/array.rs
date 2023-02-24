@@ -12,5 +12,6 @@ fn main() {
 
     d_array(&arr, &mut d_arr, 1.0);
 
+    dbg!(array(&arr));
     dbg!(&d_arr);
 }
